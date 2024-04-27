@@ -1,4 +1,5 @@
 import java.io.PrintWriter;
+import java.util.Arrays;
 
 /**
  * Takes two command-line parameters, the first of which represents the target character set and the
@@ -7,10 +8,11 @@ import java.io.PrintWriter;
  * @author Marina Ananias
  */
 public class BrailleASCII {
-	public static void main(String[] args) throws Exception {
+	
+	public static void main(String[] args) throws Exception {		
 		// PrintWriter for printing the translation result
 		PrintWriter pen = new PrintWriter(System.out, true);
-
+		
 		// Check if command-line arguments are provided
 		if (args.length < 2) {
 			return;
@@ -31,8 +33,7 @@ public class BrailleASCII {
 			pen.println(ascii);
 		} else if (targetCharSet.equals("unicode")) {
 			// Translate source characters to Unicode
-			String unicode = translateToUnicode(sourceChars);
-			pen.println(unicode);
+			translateToUnicode(sourceChars);
 		} else {
 			pen.println("Invalid target character set.");
 		}
@@ -64,14 +65,15 @@ public class BrailleASCII {
 	 */
 	private static String translateToASCII(String sourceChars) {
 		StringBuilder result = new StringBuilder();
-		// Iterate through each character in sourceChars
-		for (char c : sourceChars.toCharArray()) {
-			// Lookup the ASCII representation for the character
-			String asciiChar = BrailleASCIITables.toASCII(c);
-			// Append the ASCII representation to the result
+		char[] charArr = sourceChars.toCharArray();
+		for (int i = 0; i < (charArr.length - 5); i+= 6) {
+			// Split array by character
+			String brailleChar = new String (Arrays.copyOfRange(charArr, i, i+6));
+			// Convert and append the ASCII representation to the result
+			String asciiChar = BrailleASCIITables.toASCII(brailleChar);
 			result.append(asciiChar);
 		}
-		return result.toString();
+		return result.toString().toLowerCase();
 	} // translateToASCII(String)
 
 	/**
@@ -80,16 +82,23 @@ public class BrailleASCII {
 	 * @param sourceChars The source characters to translate.
 	 * @return The translation to Unicode.
 	 */
-	private static String translateToUnicode(String sourceChars) {
-		StringBuilder result = new StringBuilder();
-		// Iterate through each character in sourceChars
-		for (char c : sourceChars.toCharArray()) {
-			// Convert the character to its Unicode representation
-			String unicodeChar = String.format("\\u%04x", (int) c);
-			// Append the Unicode representation to the result
-			result.append(unicodeChar);
+  private static void translateToUnicode(String sourceChars) {
+		//StringBuilder result = new StringBuilder();
+		char[] charArr = sourceChars.toCharArray();
+		
+		// if ASCII->Unicode
+		if (charArr[0] != '0' && charArr[1] != '1') {
+			translateToUnicode(translateToBraille(sourceChars));
 		}
-		return result.toString();
-	} // translateToUnicode(String)
 
+    for (int i = 0; i < (charArr.length - 5); i+= 6) {
+      // Split array by character
+      String brailleChar = new String (Arrays.copyOfRange(charArr, i, i+6));
+      // Convert and append the ASCII representation to the result
+      String unicodeChar = BrailleASCIITables.toUnicode(brailleChar);
+      int j = Integer.decode("0x" + unicodeChar);
+      System.out.print(Character.toChars(j));
+    }
+    System.out.println();
+  } // translateToUnicode(String)
 } // BrailleASCII class
